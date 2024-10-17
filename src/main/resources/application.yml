@@ -1,0 +1,52 @@
+server:
+  port: 8255
+
+spring:
+  profiles:
+    active: dev
+  application:
+    name: cdc-center
+
+
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/search_center
+    username: root
+    password: 625211234
+    driver-class-name:  com.mysql.cj.jdbc.Driver
+
+    #mybatis:
+  mybatis-plus:
+    configuration:
+      log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    mapper-locations: classpath:mapper/**.xml
+
+  kafka:
+    enabled: true
+       # earliest:重置为分区中最小的offset;
+       # latest:重置为分区中最新的offset(消费分区中新产生的数据);
+       # none:只要有一个分区不存在已提交的offset,就抛出异常;
+    consumer:
+        auto-offset-reset: earliest
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers: 127.0.0.1:9092
+      bindings:
+        # 军考下单生产
+        change_data_output:
+          # 对应的topic
+          destination: change-data
+          content-type: application/json
+        # 军考下单生产
+        change_data_input:
+          destination: change-data
+          content-type: application/json
+
+logging:
+  level:
+    com.rmpl.cdc.dao.mapper: debug
+    org.hibernate: debug
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.hibernate.type.descriptor.sql.BasicExtractor: TRACE
+    io.swagger.models.parameters.AbstractSerializableParameter: error
