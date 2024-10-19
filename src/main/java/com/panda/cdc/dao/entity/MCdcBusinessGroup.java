@@ -13,7 +13,7 @@ import java.util.Date;
 
 /**
  * <p>
- * cdc-监控数据表管理表
+ * cdc-业务组表
  * </p>
  *
  * @author system
@@ -22,29 +22,16 @@ import java.util.Date;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("m_cdc_database_table")
-@ApiModel(value="MCdcDatabaseTable对象", description="cdc-监控数据表管理表")
-public class MCdcDatabaseTable implements Serializable {
-
+@TableName("m_cdc_business_group")
+@ApiModel(value="MCdcBusinessGroup对象", description="搜索-业务组表")
+public class MCdcBusinessGroup implements Serializable {
     private static final long serialVersionUID=1L;
 
     private String id;
 
-    @ApiModelProperty(value = "租户ID")
-    @TableField("tenant_id")
-    private String tenantId;
-
-    @ApiModelProperty(value = "所属数据库ID")
-    @TableField("database_id")
-    private String databaseId;
-
-    @ApiModelProperty(value = "监控的数据表")
-    @TableField("monitor_table")
-    private String monitorTable;
-
-    @ApiModelProperty(value = "备注")
-    @TableField("remark")
-    private String remark;
+    @ApiModelProperty(value = "业务组名称")
+    @TableField("business_group_name")
+    private String businessGroupName;
 
     @ApiModelProperty(value = "注册来源类型（1.PC；2.小程序；3.H5；4.APP）")
     @TableField("sd_scrtp")
@@ -85,6 +72,5 @@ public class MCdcDatabaseTable implements Serializable {
     @ApiModelProperty(value = "记录版本号")
     @TableField("ver_no")
     private String verNo;
-
 
 }

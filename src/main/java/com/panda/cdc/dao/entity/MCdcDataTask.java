@@ -12,55 +12,35 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * <p>
- * cdc-监控数据表管理表
- * </p>
- *
- * @author system
- * @since 2023-04-23
+ * @author muxiaohui
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("m_cdc_database_table")
-@ApiModel(value="MCdcDatabaseTable对象", description="cdc-监控数据表管理表")
-public class MCdcDatabaseTable implements Serializable {
-
+@TableName("m_cdc_data_task")
+@ApiModel(value="MCdcDataTask对象", description="cdc中心-数据任务表")
+public class MCdcDataTask implements Serializable {
     private static final long serialVersionUID=1L;
 
-    private String id;
+    @ApiModelProperty(value = "任务id")
+    @TableField("task_id")
+    private String taskId;
 
-    @ApiModelProperty(value = "租户ID")
+    @ApiModelProperty(value = "租户id")
     @TableField("tenant_id")
     private String tenantId;
 
-    @ApiModelProperty(value = "所属数据库ID")
-    @TableField("database_id")
-    private String databaseId;
+    @ApiModelProperty(value = "任务名称")
+    @TableField("task_name")
+    private String taskName;
 
-    @ApiModelProperty(value = "监控的数据表")
-    @TableField("monitor_table")
-    private String monitorTable;
+    @ApiModelProperty(value = "topic名称")
+    @TableField("topic_name")
+    private String topicName;
 
-    @ApiModelProperty(value = "备注")
-    @TableField("remark")
-    private String remark;
-
-    @ApiModelProperty(value = "注册来源类型（1.PC；2.小程序；3.H5；4.APP）")
-    @TableField("sd_scrtp")
-    private String sdScrtp;
-
-    @ApiModelProperty(value = "注册伙伴产品(业务项目)")
-    @TableField("id_scrvar")
-    private String idScrvar;
-
-    @ApiModelProperty(value = "注册上传机构（公司名）")
-    @TableField("id_scrorg")
-    private String idScrorg;
-
-    @ApiModelProperty(value = "启用禁用（是否失效）0启用，1禁用")
-    @TableField("fg_dis")
-    private Integer fgDis;
+    @ApiModelProperty(value = "数据状态（1：进行中、2：中断、3：继续）")
+    @TableField("task_status")
+    private Integer taskStatus;
 
     @ApiModelProperty(value = "是否删除，0未删除，1已删除")
     @TableField("fg_del")

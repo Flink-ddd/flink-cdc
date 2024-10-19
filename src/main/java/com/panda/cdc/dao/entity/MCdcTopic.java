@@ -13,7 +13,7 @@ import java.util.Date;
 
 /**
  * <p>
- * cdc-监控数据表管理表
+ * cdc-监控业务topic表
  * </p>
  *
  * @author system
@@ -22,10 +22,9 @@ import java.util.Date;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("m_cdc_database_table")
-@ApiModel(value="MCdcDatabaseTable对象", description="cdc-监控数据表管理表")
-public class MCdcDatabaseTable implements Serializable {
-
+@TableName("m_cdc_topic")
+@ApiModel(value="MCdcTopic对象", description="cdc-监控业务topic表")
+public class MCdcTopic implements Serializable {
     private static final long serialVersionUID=1L;
 
     private String id;
@@ -34,17 +33,25 @@ public class MCdcDatabaseTable implements Serializable {
     @TableField("tenant_id")
     private String tenantId;
 
-    @ApiModelProperty(value = "所属数据库ID")
-    @TableField("database_id")
-    private String databaseId;
+    @ApiModelProperty(value = "监控的数据库")
+    @TableField("monitor_db")
+    private String monitorDb;
 
     @ApiModelProperty(value = "监控的数据表")
     @TableField("monitor_table")
     private String monitorTable;
 
-    @ApiModelProperty(value = "备注")
-    @TableField("remark")
-    private String remark;
+    @ApiModelProperty(value = "topic来源 1：rabbitMQ、2：rocketMQ、3：kafka")
+    @TableField("topic_source")
+    private Integer topicSource;
+
+    @ApiModelProperty(value = "操作状态  0：启用、1：停用")
+    @TableField("is_operate")
+    private Integer isOperate;
+
+    @ApiModelProperty(value = "自定义topic名称")
+    @TableField("topic_name")
+    private String topicName;
 
     @ApiModelProperty(value = "注册来源类型（1.PC；2.小程序；3.H5；4.APP）")
     @TableField("sd_scrtp")
@@ -85,6 +92,5 @@ public class MCdcDatabaseTable implements Serializable {
     @ApiModelProperty(value = "记录版本号")
     @TableField("ver_no")
     private String verNo;
-
 
 }
