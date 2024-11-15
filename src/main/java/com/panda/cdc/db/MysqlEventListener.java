@@ -1,15 +1,24 @@
 package com.panda.cdc.db;
 
 
+import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.panda.cdc.db.convert.CustomerDeserialization;
 import com.panda.cdc.db.convert.DataBaseDeserialization;
 import com.panda.cdc.mq.DataChangeInfo;
 import com.panda.cdc.mq.DataChangeSink;
+import com.panda.cdc.utils.KafkaUtils;
 import com.ververica.cdc.connectors.mysql.source.MySqlSource;
 import com.ververica.cdc.connectors.mysql.table.StartupOptions;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
+import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -19,6 +28,10 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
@@ -121,6 +134,105 @@ public class MysqlEventListener implements ApplicationRunner {
         properties.setProperty("topic", String.valueOf(topicOp));
         properties.setProperty("pulsar.producer.blockIfQueueFull", "true");
         return new FlinkPulsarSink<String>(serviceUrl, adminUrl, topicOp, properties, null);
+    }
+
+    public static class DynamicKafkaSink extends RichMapFunction<String, String> {
+        private transient FlinkKafkaProducer<String> kafkaProducer;
+        private String brokers;
+
+        public DynamicKafkaSink(String brokers) {
+            this.brokers = brokers;
+        }
+
+        @Override
+        public void open(Configuration parameters) throws Exception {
+            Properties properties = new Properties();
+            properties.setProperty("bootstrap.servers", brokers);
+            this.kafkaProducer = new FlinkKafkaProducer<>(
+                    // 空的 topic 名称，将在处理每条记录时动态设置
+                    "",
+                    new SimpleStringSchema(),
+                    properties
+            );
+        }
+
+        @Override
+        public String map(String value) throws Exception {
+            JSONObject jsonObjectInfo = JSONObject.parseObject(value);
+            String topicName = String.valueOf(jsonObjectInfo.get("topicName"));
+            String[] topicNames = topicName.split("\\,");
+
+            int port = 9092;
+            if (StringUtils.isBlank(brokers) && StringUtils.contains(brokers, ":")){
+                brokers = StringUtils.split(topicName, ":")[0];
+                port = Integer.parseInt(StringUtils.split(topicName, ":")[1]);
+            }
+            KafkaUtils.KafkaStreamServer kafkaStreamServer = KafkaUtils.bulidServer().createKafkaStreamServer(brokers,port);
+            for(String tn : topicNames){
+                kafkaStreamServer.sendMsg(tn, value);
+                System.out.println("Message sent to Kafka topic: " + tn);
+            }
+            return value;
+        }
+
+        @Override
+        public void close() throws Exception {
+            if (kafkaProducer != null) {
+                kafkaProducer.close();
+            }
+        }
+
+    }
+
+    /**
+     * 静态内部类实现 MapFunction
+     */
+    public static class MyMapFunction extends RichMapFunction<String, String> {
+        private static final String JDBC_URL = "jdbc:mysql://172.16.52.99:3306/cdc_center?autoReconnect=true";
+        private static final String JDBC_USER = "root";
+        private static final String JDBC_PASSWORD = "nihao123";
+        private transient Connection connection;
+        private final ObjectMapper objectMapper = new ObjectMapper();
+
+        @Override
+        public void open(Configuration parameters) throws Exception {
+            // 初始化 JDBC 连接
+            connection = DriverManager.getConnection(JDBC_URL, JDBC_USER, JDBC_PASSWORD);
+        }
+
+        @Override
+        public String map(String s) throws Exception {
+            JSONObject jsonObjectInfo = JSONObject.parseObject(s);
+            JsonNode node = objectMapper.readTree(s);
+            String jsonNodeString = node.toString();
+            JsonObject jsonObject = JsonParser.parseString(jsonNodeString).getAsJsonObject();
+            String me = jsonObject.get("data").toString();
+            JsonObject meO = JsonParser.parseString(me).getAsJsonObject();
+            String tableName = meO.get("table").getAsString();
+
+            // 使用 PreparedStatement 进行查询
+            String query = "SELECT topic_name FROM m_cdc_topic WHERE monitor_table = ?";
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setString(1, tableName);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            String topic_name = null;
+            if (resultSet.next()) {
+                topic_name = resultSet.getString("topic_name");
+            }
+            jsonObjectInfo.put("topicName", topic_name);
+            resultSet.close();
+            preparedStatement.close();
+            return jsonObjectInfo.toJSONString();
+        }
+
+        @Override
+        public void close() throws Exception {
+            // 关闭 JDBC 连接
+            if (connection != null) {
+                connection.close();
+            }
+        }
+
     }
 
 
