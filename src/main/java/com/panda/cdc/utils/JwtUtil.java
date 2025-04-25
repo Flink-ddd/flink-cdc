@@ -2,8 +2,6 @@ package com.panda.cdc.utils;
 
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSONObject;
-import com.common.cdc.constant.SystemConstant;
-import com.common.cdc.dto.resp.user.LoginRespDTO;
 import com.panda.cdc.constant.SystemConstant;
 import com.panda.cdc.dto.resp.user.LoginRespDTO;
 import io.jsonwebtoken.Claims;

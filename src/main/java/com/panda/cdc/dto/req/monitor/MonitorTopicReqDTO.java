@@ -1,7 +1,7 @@
 package com.panda.cdc.dto.req.monitor;
 
 
-import com.common.cdc.dto.CommonReqDTO;
+import com.panda.cdc.dto.CommonReqDTO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;

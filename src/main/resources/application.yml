@@ -33,12 +33,10 @@ spring:
         binder:
           brokers: 127.0.0.1:9092
       bindings:
-        # 军考下单生产
         change_data_output:
           # 对应的topic
           destination: change-data
           content-type: application/json
-        # 军考下单生产
         change_data_input:
           destination: change-data
           content-type: application/json

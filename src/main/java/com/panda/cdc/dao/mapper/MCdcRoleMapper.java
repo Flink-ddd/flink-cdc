@@ -1,7 +1,8 @@
 package com.panda.cdc.dao.mapper;
 
+
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.common.cdc.dao.entity.MCdcRole;
+import com.panda.cdc.dao.entity.MCdcRole;
 
 /**
  * <p>
