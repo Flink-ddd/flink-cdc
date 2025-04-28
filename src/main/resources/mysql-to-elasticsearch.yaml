@@ -1,0 +1,26 @@
+################################################################################
+# Description: Sync MySQL all tables to elasticsearch
+################################################################################
+source:
+  type: mysql
+  name: MySQL Source
+  hostname: 127.0.0.1
+  port: 3306
+  username: root
+  password: 625211234
+  tables: adb.\.*, bdb.user_table_[0-9]+, [app|web].order_\.*
+  server-id: 5401-5404
+
+sink:
+  type: elasticsearch
+  name: Elasticsearch Sink
+  hosts: http://127.0.0.1:9092,http://127.0.0.1:9093
+
+route:
+  - source-table: adb.\.*
+    sink-table: default_index
+    description: sync adb.\.* table to default_index
+
+pipeline:
+  name: MySQL to Elasticsearch Pipeline
+  parallelism: 2
